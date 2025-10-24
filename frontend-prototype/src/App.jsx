@@ -18,6 +18,7 @@ import Billing from './pages/Billing';
 import Settings from './pages/Settings';
 import Alerts from './pages/Alerts';
 import Help from './pages/Help';
+import Visualization from './pages/Visualization';
 
 // Layout
 import Layout from './components/Layout';
@@ -58,6 +59,7 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="alerts" element={<Alerts />} />
               <Route path="help" element={<Help />} />
+              <Route path="visualization" element={<Visualization />} />
             </Route>
 
             {/* Backward compatibility */}

@@ -28,6 +28,7 @@ import {
   Warning as AlertIcon,
   Help as HelpIcon,
   Logout as LogoutIcon,
+  Visibility as VisualizationIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,6 +36,7 @@ const drawerWidth = 240;
 
 const adminMenuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/app/dashboard' },
+  { text: 'Visualization', icon: <VisualizationIcon />, path: '/app/visualization' },
   { text: 'Resources', icon: <ResourcesIcon />, path: '/app/resources' },
   { text: 'Workloads', icon: <WorkloadsIcon />, path: '/app/workloads' },
   { text: 'Billing', icon: <BillingIcon />, path: '/app/billing' },
