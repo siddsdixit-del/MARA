@@ -1,0 +1,5 @@
+kafka-python==2.0.2
+asyncio==3.4.3
+dataclasses-json==0.6.3
+numpy==1.26.3
+

@@ -1,0 +1,119 @@
+groups:
+  - name: mara_hcp_alerts
+    interval: 30s
+    rules:
+      # GPU Alerts
+      - alert: HighGPUTemperature
+        expr: mara_gpu_temperature_celsius > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: gpu
+        annotations:
+          summary: "High GPU temperature on {{ $labels.gpu_id }}"
+          description: "GPU {{ $labels.gpu_id }} temperature is {{ $value }}°C (threshold: 80°C)"
+      
+      - alert: CriticalGPUTemperature
+        expr: mara_gpu_temperature_celsius > 90
+        for: 2m
+        labels:
+          severity: critical
+          component: gpu
+        annotations:
+          summary: "CRITICAL: GPU temperature on {{ $labels.gpu_id }}"
+          description: "GPU {{ $labels.gpu_id }} temperature is {{ $value }}°C (threshold: 90°C)"
+      
+      - alert: LowGPUUtilization
+        expr: mara_gpu_utilization_percent < 20
+        for: 15m
+        labels:
+          severity: info
+          component: gpu
+        annotations:
+          summary: "Low GPU utilization on {{ $labels.gpu_id }}"
+          description: "GPU {{ $labels.gpu_id }} utilization is {{ $value }}% for 15 minutes"
+      
+      - alert: GPUMemoryHigh
+        expr: (mara_gpu_memory_used_bytes / mara_gpu_memory_total_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: gpu
+        annotations:
+          summary: "High GPU memory usage on {{ $labels.gpu_id }}"
+          description: "GPU {{ $labels.gpu_id }} memory usage is {{ $value | humanizePercentage }}"
+      
+      # ASIC Alerts
+      - alert: LowHashRate
+        expr: mara_asic_hash_rate_ths < 250
+        for: 10m
+        labels:
+          severity: warning
+          component: asic
+        annotations:
+          summary: "Low hash rate on {{ $labels.asic_id }}"
+          description: "ASIC {{ $labels.asic_id }} hash rate is {{ $value }} TH/s (expected: 270)"
+      
+      - alert: HighASICTemperature
+        expr: mara_asic_temperature_celsius > 75
+        for: 5m
+        labels:
+          severity: warning
+          component: asic
+        annotations:
+          summary: "High ASIC temperature on {{ $labels.asic_id }}"
+          description: "ASIC {{ $labels.asic_id }} temperature is {{ $value }}°C"
+      
+      - alert: HighShareRejectionRate
+        expr: rate(mara_asic_shares_rejected_total[5m]) / rate(mara_asic_shares_accepted_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: asic
+        annotations:
+          summary: "High share rejection rate on {{ $labels.asic_id }}"
+          description: "ASIC {{ $labels.asic_id }} has {{ $value | humanizePercentage }} rejection rate"
+      
+      # Orchestrator Alerts
+      - alert: HighQueueDepth
+        expr: sum(router_queue_depth) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: orchestrator
+        annotations:
+          summary: "High workload queue depth"
+          description: "Queue depth is {{ $value }} workloads"
+      
+      - alert: SlowAllocationTime
+        expr: histogram_quantile(0.95, rate(orchestrator_allocation_duration_seconds_bucket[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: orchestrator
+        annotations:
+          summary: "Slow resource allocation"
+          description: "95th percentile allocation time is {{ $value }}s (threshold: 0.1s)"
+      
+      # Capacity Alerts
+      - alert: LowAvailableCapacity
+        expr: (count(mara_gpu_utilization_percent < 20) / count(mara_gpu_utilization_percent)) < 0.1
+        for: 15m
+        labels:
+          severity: warning
+          component: capacity
+        annotations:
+          summary: "Low available GPU capacity"
+          description: "Only {{ $value | humanizePercentage }} of GPUs are available"
+      
+      # Power Alerts
+      - alert: HighPowerConsumption
+        expr: sum(mara_gpu_power_draw_watts) + sum(mara_asic_power_draw_watts) > 150000
+        for: 5m
+        labels:
+          severity: info
+          component: power
+        annotations:
+          summary: "High power consumption"
+          description: "Total power consumption is {{ $value | humanize }}W"
+

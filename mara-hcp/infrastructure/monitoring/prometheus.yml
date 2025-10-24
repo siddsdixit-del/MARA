@@ -1,0 +1,118 @@
+# Prometheus Configuration for MARA HCP
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'mara-hcp-dev'
+    environment: 'development'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - 'alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Kubernetes pods with prometheus.io/scrape annotation
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Core services (when running locally)
+  - job_name: 'orchestrator-service'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+        labels:
+          service: 'orchestrator'
+
+  - job_name: 'optimizer-service'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          service: 'optimizer'
+
+  - job_name: 'workload-router-service'
+    static_configs:
+      - targets: ['host.docker.internal:8082']
+        labels:
+          service: 'workload-router'
+
+  - job_name: 'resource-manager-service'
+    static_configs:
+      - targets: ['host.docker.internal:8083']
+        labels:
+          service: 'resource-manager'
+
+  # GPU Metrics Exporter
+  - job_name: 'gpu-metrics'
+    static_configs:
+      - targets: ['host.docker.internal:9400']
+        labels:
+          exporter: 'gpu'
+
+  # ASIC Metrics Exporter
+  - job_name: 'asic-metrics'
+    static_configs:
+      - targets: ['host.docker.internal:9401']
+        labels:
+          exporter: 'asic'
+
+  # Infrastructure metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+        labels:
+          service: 'postgres'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+        labels:
+          service: 'kafka'
+
+  # Node exporter for system metrics (when available)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+        labels:
+          role: 'node'
+

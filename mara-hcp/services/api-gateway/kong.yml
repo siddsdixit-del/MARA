@@ -1,0 +1,105 @@
+_format_version: "3.0"
+
+# MARA HCP API Gateway Configuration (Kong)
+
+services:
+  - name: orchestrator-service
+    url: http://host.docker.internal:8080
+    routes:
+      - name: orchestrator-route
+        paths:
+          - /api/v1/orchestrator
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 1000
+          hour: 10000
+          policy: local
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+          exposed_headers:
+            - X-Auth-Token
+          credentials: true
+          max_age: 3600
+
+  - name: optimizer-service
+    url: http://host.docker.internal:8081
+    routes:
+      - name: optimizer-route
+        paths:
+          - /api/v1/optimizer
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 500
+          policy: local
+
+  - name: workload-router-service
+    url: http://host.docker.internal:8082
+    routes:
+      - name: workload-route
+        paths:
+          - /api/v1/workloads
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 2000
+          hour: 20000
+          policy: local
+
+  - name: resource-manager-service
+    url: http://host.docker.internal:8083
+    routes:
+      - name: resource-route
+        paths:
+          - /api/v1/resources
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 1000
+          policy: local
+
+# Global plugins (simplified - using only bundled plugins)
+# Removed: request-id, correlation-id, prometheus (not in base Kong image)
+
+# Upstreams (for load balancing when scaling)
+upstreams:
+  - name: orchestrator-upstream
+    algorithm: round-robin
+    targets:
+      - target: host.docker.internal:8080
+        weight: 100
+
+# Consumers (API Keys for development)
+consumers:
+  - username: dev-admin
+    custom_id: dev-admin-001
+    keyauth_credentials:
+      - key: dev-admin-key-12345
+
+  - username: dev-customer
+    custom_id: dev-customer-001
+    keyauth_credentials:
+      - key: dev-customer-key-67890
+

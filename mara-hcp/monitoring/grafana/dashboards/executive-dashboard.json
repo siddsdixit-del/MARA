@@ -1,0 +1,106 @@
+{
+  "dashboard": {
+    "title": "MARA HCP - Executive Dashboard",
+    "tags": ["mara", "executive"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "Total Hash Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(mara_asic_hash_rate_ths)",
+            "legendFormat": "Total TH/s"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "TH/s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 10000, "color": "yellow"},
+                {"value": 13000, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "GPU Utilization",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "avg(mara_gpu_utilization_percent)",
+            "legendFormat": "Average %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 50, "color": "yellow"},
+                {"value": 80, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Total Power Consumption",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(mara_gpu_power_draw_watts) + sum(mara_asic_power_draw_watts)",
+            "legendFormat": "Total Watts"
+          }
+        ],
+        "yaxes": [
+          {"format": "watt", "label": "Power"}
+        ]
+      },
+      {
+        "title": "Active Workloads",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "orchestrator_active_workloads",
+            "legendFormat": "Workloads"
+          }
+        ]
+      },
+      {
+        "title": "GPU Temperature Heatmap",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "mara_gpu_temperature_celsius",
+            "legendFormat": "{{gpu_id}}"
+          }
+        ]
+      },
+      {
+        "title": "Workload Switches (Last Hour)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(mara_gpu_workload_switches_total[5m])",
+            "legendFormat": "{{gpu_id}}"
+          }
+        ]
+      }
+    ],
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}
+
